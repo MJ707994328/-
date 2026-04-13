@@ -1,0 +1,5 @@
+.local_secrets.json
+__pycache__/
+*.pyc
+captures/
+experiments/
