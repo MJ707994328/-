@@ -153,6 +153,8 @@ class TeachingEvalApp(ctk.CTk):
         self.body_font = ctk.CTkFont(family=self.ui_family, size=18)
         self.body_bold_font = ctk.CTkFont(family=self.ui_family, size=18, weight="bold")
         self.small_font = ctk.CTkFont(family=self.ui_family, size=14)
+        self.input_font = ctk.CTkFont(family=self.ui_family, size=22)
+        self.input_label_font = ctk.CTkFont(family=self.ui_family, size=21, weight="bold")
         self.score_font = ctk.CTkFont(family=self.serif_family, size=60, weight="bold")
         self.preview_hint_font = ctk.CTkFont(family=self.ui_family, size=21)
 
@@ -222,8 +224,8 @@ class TeachingEvalApp(ctk.CTk):
 
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.grid(row=1, column=0, sticky="nsew", padx=34, pady=(0, 30))
-        body.grid_columnconfigure(0, weight=8)
-        body.grid_columnconfigure(1, weight=4)
+        body.grid_columnconfigure(0, weight=7)
+        body.grid_columnconfigure(1, weight=5)
         body.grid_rowconfigure(0, weight=8)
         body.grid_rowconfigure(1, weight=3)
 
@@ -308,7 +310,7 @@ class TeachingEvalApp(ctk.CTk):
         objective_card = self._create_card(sidebar)
         objective_card.grid(row=2, column=0, sticky="nsew")
         objective_card.grid_columnconfigure(0, weight=1)
-        objective_card.grid_rowconfigure(3, weight=1)
+        objective_card.grid_rowconfigure(3, weight=1, minsize=380)
         objective_card.bind("<Configure>", self._on_objective_card_resize)
         ctk.CTkLabel(objective_card, text="实验目标", font=self.title_font, text_color=TEXT).grid(
             row=0, column=0, sticky="w", padx=22, pady=(22, 12)
@@ -316,19 +318,26 @@ class TeachingEvalApp(ctk.CTk):
 
         expected_row = ctk.CTkFrame(objective_card, fg_color="transparent")
         expected_row.grid(row=1, column=0, sticky="ew", padx=22, pady=(0, 12))
-        ctk.CTkLabel(expected_row, text="预期时长（分钟）", font=self.body_bold_font, text_color=TEXT).pack(side="left")
+        expected_row.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(
+            expected_row,
+            text="预期时长（分钟）",
+            font=self.input_label_font,
+            text_color=TEXT,
+        ).grid(row=0, column=0, sticky="w")
         self.expected_time_entry = ctk.CTkEntry(
             expected_row,
-            width=170,
+            width=380,
             textvariable=self.expected_time_var,
-            font=self.body_font,
-            justify="center",
-            corner_radius=16,
-            height=40,
+            font=self.input_font,
+            justify="left",
+            corner_radius=24,
+            height=78,
             border_color=OUTLINE,
             fg_color=CARD_BG_SOFT,
         )
-        self.expected_time_entry.pack(side="left", padx=(16, 0))
+        self.expected_time_entry.grid(row=1, column=0, sticky="ew", pady=(10, 0))
+        self.expected_time_entry._entry.configure(insertwidth=3, relief="flat")
 
         self.objective_hint_label = ctk.CTkLabel(
             objective_card,
@@ -342,16 +351,18 @@ class TeachingEvalApp(ctk.CTk):
 
         self.description_text = ctk.CTkTextbox(
             objective_card,
-            corner_radius=20,
+            corner_radius=24,
             border_width=1,
+            border_spacing=12,
             border_color=OUTLINE,
             fg_color=CARD_BG_SOFT,
             text_color=TEXT,
-            font=self.body_font,
-            height=170,
+            font=self.input_font,
+            height=380,
             wrap="word",
         )
         self.description_text.grid(row=3, column=0, sticky="nsew", padx=22, pady=(0, 10))
+        self.description_text._textbox.configure(padx=20, pady=18, spacing1=8, spacing3=10)
 
         self.time_rule_hint_label = ctk.CTkLabel(
             objective_card,

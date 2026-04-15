@@ -1,0 +1,4 @@
+customtkinter==5.2.2
+Pillow==12.2.0
+pyvisa==1.16.2
+pyvisa-py==0.8.1

@@ -720,16 +720,33 @@ def _config_value(config: dict[str, object], *keys: str) -> str | None:
 
 def _perform_json_request(request: urllib.request.Request, *, label: str) -> dict[str, object]:
     last_error: Exception | None = None
-    for attempt in range(3):
+    last_details = ""
+    max_attempts = 6
+    for attempt in range(max_attempts):
         try:
             with urllib.request.urlopen(request, timeout=120) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             details = exc.read().decode("utf-8", errors="replace")
+            last_error = exc
+            last_details = details
+            if exc.code in {429, 500, 502, 503, 504} and attempt < max_attempts - 1:
+                time.sleep(1.5 * (attempt + 1))
+                continue
+            if exc.code == 429 and "overload" in details.lower():
+                raise AIScoringError(
+                    f"{label} 当前服务繁忙（HTTP 429，engine overloaded），请稍后重试。原始返回：{details}"
+                ) from exc
             raise AIScoringError(f"{label} 返回 HTTP {exc.code}: {details}") from exc
         except (urllib.error.URLError, http.client.RemoteDisconnected, TimeoutError) as exc:
             last_error = exc
-            if attempt == 2:
+            if attempt == max_attempts - 1:
                 break
-            time.sleep(1.2 * (attempt + 1))
-    raise AIScoringError(f"无法连接到 {label}：{last_error}")
+            time.sleep(1.5 * (attempt + 1))
+    if isinstance(last_error, http.client.RemoteDisconnected):
+        raise AIScoringError(
+            f"{label} 连接被服务端提前关闭，通常表示接口繁忙或网关不稳定，请稍后重试。"
+        ) from last_error
+    if last_details:
+        raise AIScoringError(f"无法连接到 {label}：{last_error}。最近一次返回：{last_details}") from last_error
+    raise AIScoringError(f"无法连接到 {label}：{last_error}") from last_error
